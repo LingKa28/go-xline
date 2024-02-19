@@ -14,7 +14,7 @@ import (
 type CurpApi interface {
 	// Send propose to the whole cluster, `use_fast_path` set to `false` to fallback into ordered
 	// requests (event the requests are commutative).
-	propose(cmd *xlinepb.Command, useFastPath bool) (*rpc.ProposeResult_, *rpc.CurpError)
+	Propose(cmd *xlinepb.Command, useFastPath bool) (*rpc.ProposeResult_, *rpc.CurpError)
 }
 
 // Leader state

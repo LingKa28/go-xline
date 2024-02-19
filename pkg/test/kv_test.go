@@ -7,42 +7,40 @@ import (
 	"github.com/xline-kv/go-xline/pkg/client"
 )
 
-func TestPut(t *testing.T) {
-	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
-
-	cli, _ := client.Connect(curpMembers, nil)
-	kv := cli.KV
-
-	kv.Put([]byte("put"), []byte("123"))
-
-	t.Run("overwrite_with_prev_key", func(t *testing.T) {
-		res, _ := kv.Put([]byte("put"), []byte("456"), client.WithPrevKV())
-		assert.Equal(t, "put", string(res.PrevKv.Key))
-		assert.Equal(t, "123", string(res.PrevKv.Value))
-	})
-
-	t.Run("overwrite_again_with_prev_key", func(t *testing.T) {
-		res, _ := kv.Put([]byte("put"), []byte("456"), client.WithPrevKV())
-		assert.Equal(t, "put", string(res.PrevKv.Key))
-		assert.Equal(t, "456", string(res.PrevKv.Value))
-	})
-}
-
-// func TestGet(t *testing.T) {
-// 	xlog.SetLevel(zapcore.ErrorLevel)
-
+// func TestPut(t *testing.T) {
 // 	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
 
-// 	xlineClient, _ := client.Connect(curpMembers)
-// 	kvClient := xlineClient.KV
+// 	cli, _ := client.Connect(curpMembers, nil)
+// 	kv := cli.KV
 
-// 	kvClient.Put([]byte("get10"), []byte("10"))
-// 	kvClient.Put([]byte("get11"), []byte("11"))
-// 	kvClient.Put([]byte("get20"), []byte("20"))
-// 	kvClient.Put([]byte("get21"), []byte("21"))
+// 	kv.Put([]byte("put"), []byte("123"))
+
+// 	t.Run("overwrite_with_prev_key", func(t *testing.T) {
+// 		res, _ := kv.Put([]byte("put"), []byte("456"), client.WithPrevKV())
+// 		assert.Equal(t, "put", string(res.PrevKv.Key))
+// 		assert.Equal(t, "123", string(res.PrevKv.Value))
+// 	})
+
+// 	t.Run("overwrite_again_with_prev_key", func(t *testing.T) {
+// 		res, _ := kv.Put([]byte("put"), []byte("456"), client.WithPrevKV())
+// 		assert.Equal(t, "put", string(res.PrevKv.Key))
+// 		assert.Equal(t, "456", string(res.PrevKv.Value))
+// 	})
+// }
+
+// func TestGet(t *testing.T) {
+// 	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
+
+// 	cli, _ := client.Connect(curpMembers, nil)
+// 	kv := cli.KV
+
+// 	kv.Put([]byte("get10"), []byte("10"))
+// 	kv.Put([]byte("get11"), []byte("11"))
+// 	kv.Put([]byte("get20"), []byte("20"))
+// 	kv.Put([]byte("get21"), []byte("21"))
 
 // 	t.Run("get_Key", func(t *testing.T) {
-// 		res, _ := kvClient.Range([]byte("get11"))
+// 		res, _ := kv.Range([]byte("get11"))
 // 		assert.False(t, res.More)
 // 		assert.Len(t, res.Kvs, 1)
 // 		assert.Equal(t, "get11", string(res.Kvs[0].Key))
@@ -50,7 +48,7 @@ func TestPut(t *testing.T) {
 // 	})
 
 // 	t.Run("get_from_key", func(t *testing.T) {
-// 		res, _ := kvClient.Range([]byte("get11"), client.WithFromKey(), client.WithLimit(2))
+// 		res, _ := kv.Range([]byte("get11"), client.WithFromKey(), client.WithLimit(2))
 // 		assert.True(t, res.More)
 // 		assert.Len(t, res.Kvs, 2)
 // 		assert.Equal(t, "get11", string(res.Kvs[0].Key))
@@ -60,7 +58,7 @@ func TestPut(t *testing.T) {
 // 	})
 
 // 	t.Run("get_prefix_keys", func(t *testing.T) {
-// 		res, _ := kvClient.Range([]byte("get1"), client.WithPrefix())
+// 		res, _ := kv.Range([]byte("get1"), client.WithPrefix())
 // 		assert.Equal(t, int64(2), res.Count)
 // 		assert.False(t, res.More)
 // 		assert.Len(t, res.Kvs, 2)
@@ -72,68 +70,64 @@ func TestPut(t *testing.T) {
 // }
 
 // func TestDelete(t *testing.T) {
-// 	xlog.SetLevel(zapcore.ErrorLevel)
-
 // 	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
 
-// 	xlineClient, _ := client.Connect(curpMembers)
-// 	kvClient := xlineClient.KV
+// 	cli, _ := client.Connect(curpMembers, nil)
+// 	kv := cli.KV
 
-// 	kvClient.Put([]byte("del10"), []byte("10"))
-// 	kvClient.Put([]byte("del11"), []byte("11"))
-// 	kvClient.Put([]byte("del20"), []byte("20"))
-// 	kvClient.Put([]byte("del21"), []byte("21"))
-// 	kvClient.Put([]byte("del31"), []byte("31"))
-// 	kvClient.Put([]byte("del32"), []byte("32"))
+// 	kv.Put([]byte("del10"), []byte("10"))
+// 	kv.Put([]byte("del11"), []byte("11"))
+// 	kv.Put([]byte("del20"), []byte("20"))
+// 	kv.Put([]byte("del21"), []byte("21"))
+// 	kv.Put([]byte("del31"), []byte("31"))
+// 	kv.Put([]byte("del32"), []byte("32"))
 
 // 	t.Run("delete_key", func(t *testing.T) {
-// 		delRes, _ := kvClient.Delete("del11", client.WithPrevKV())
+// 		delRes, _ := kv.Delete("del11", client.WithPrevKV())
 
 // 		assert.Equal(t, delRes.Deleted, int64(1))
 // 		assert.Equal(t, "del11", string(delRes.PrevKvs[0].Key))
 // 		assert.Equal(t, "11", string(delRes.PrevKvs[0].Value))
 
-// 		getRes, _ := kvClient.Range([]byte("del11"), client.WithCountOnly())
+// 		getRes, _ := kv.Range([]byte("del11"), client.WithCountOnly())
 // 		assert.Equal(t, getRes.Count, int64(0))
 // 	})
 
 // 	t.Run("delete_a_range_of_keys", func(t *testing.T) {
-// 		delRes, _ := kvClient.Delete("del11", client.WithRange([]byte("del22")), client.WithPrevKV())
+// 		delRes, _ := kv.Delete("del11", client.WithRange([]byte("del22")), client.WithPrevKV())
 // 		assert.Equal(t, int64(2), delRes.Deleted)
 // 		assert.Equal(t, "del20", string(delRes.PrevKvs[0].Key))
 // 		assert.Equal(t, "20", string(delRes.PrevKvs[0].Value))
 // 		assert.Equal(t, "del21", string(delRes.PrevKvs[1].Key))
 // 		assert.Equal(t, "21", string(delRes.PrevKvs[1].Value))
 
-// 		getRes, _ := kvClient.Range([]byte("del11"), client.WithCountOnly())
+// 		getRes, _ := kv.Range([]byte("del11"), client.WithCountOnly())
 // 		assert.Equal(t, int64(0), getRes.Count)
 // 	})
 
 // 	t.Run("delete key with prefix", func(t *testing.T) {
-// 		delRes, _ := kvClient.Delete("del3", client.WithPrefix(), client.WithPrevKV())
+// 		delRes, _ := kv.Delete("del3", client.WithPrefix(), client.WithPrevKV())
 // 		assert.Equal(t, int64(2), delRes.Deleted)
 // 		assert.Equal(t, "del31", string(delRes.PrevKvs[0].Key))
 // 		assert.Equal(t, "31", string(delRes.PrevKvs[0].Value))
 // 		assert.Equal(t, "del32", string(delRes.PrevKvs[1].Key))
 // 		assert.Equal(t, "32", string(delRes.PrevKvs[1].Value))
 
-// 		getRes, _ := kvClient.Range([]byte("del32"), client.WithCountOnly())
+// 		getRes, _ := kv.Range([]byte("del32"), client.WithCountOnly())
 // 		assert.Equal(t, int64(0), getRes.Count)
 // 	})
 // }
 
 // func TestTxn(t *testing.T) {
-// 	xlog.SetLevel(zapcore.ErrorLevel)
-
 // 	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
 
-// 	xlineClient, _ := client.Connect(curpMembers)
-// 	kvClient := xlineClient.KV
+// 	cli, _ := client.Connect(curpMembers, nil)
+// 	kv := cli.KV
 
-// 	kvClient.Put([]byte("txn01"), []byte("01"))
+// 	kv.Put([]byte("txn01"), []byte("01"))
 
 // 	t.Run("transaction_1", func(t *testing.T) {
-// 		txnRes, _ := kvClient.Txn().
+// 		txnRes, _ := kv.Txn().
 // 			When(client.Compare(client.Value([]byte("txn01")), "=", "01")).
 // 			AndThen(client.OpPut([]byte("txn01"), []byte("02"), client.WithPrevKV())).
 // 			OrElse(client.OpRange([]byte("txn01"))).
@@ -146,13 +140,13 @@ func TestPut(t *testing.T) {
 // 		assert.NotNil(t, putRes)
 // 		assert.Equal(t, "01", string(putRes.PrevKv.Value))
 
-// 		getRes, _ := kvClient.Range([]byte("txn01"))
+// 		getRes, _ := kv.Range([]byte("txn01"))
 // 		assert.Equal(t, "txn01", string(getRes.Kvs[0].Key))
 // 		assert.Equal(t, "02", string(getRes.Kvs[0].Value))
 // 	})
 
 // 	t.Run("transaction_2", func(t *testing.T) {
-// 		txnRes, _ := kvClient.Txn().
+// 		txnRes, _ := kv.Txn().
 // 			When(client.Compare(client.Value([]byte("txn01")), "=", "01")).
 // 			AndThen(client.OpPut([]byte("txn01"), []byte("02"), client.WithPrevKV())).
 // 			OrElse(client.OpRange([]byte("txn01"))).
@@ -167,33 +161,31 @@ func TestPut(t *testing.T) {
 // 	})
 // }
 
-// func TestCompact(t *testing.T) {
-// 	xlog.SetLevel(zapcore.ErrorLevel)
+func TestCompact(t *testing.T) {
+	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
 
-// 	curpMembers := []string{"172.20.0.3:2379", "172.20.0.4:2379", "172.20.0.5:2379"}
+	xlineClient, _ := client.Connect(curpMembers, nil)
+	kvClient := xlineClient.KV
 
-// 	xlineClient, _ := client.Connect(curpMembers)
-// 	kvClient := xlineClient.KV
+	kvClient.Put([]byte("compact"), []byte("0"))
+	putRes, _ := kvClient.Put([]byte("compact"), []byte("1"))
+	rev := putRes.Header.Revision
 
-// 	kvClient.Put([]byte("compact"), []byte("0"))
-// 	putRes, _ := kvClient.Put([]byte("compact"), []byte("1"))
-// 	rev := putRes.Header.Revision
+	// before compacting
+	rev0res, _ := kvClient.Range([]byte("compact"), client.WithRev(rev-1))
+	assert.NotNil(t, rev0res)
+	assert.Equal(t, "0", string(rev0res.Kvs[0].Value))
 
-// 	// before compacting
-// 	rev0res, _ := kvClient.Range([]byte("compact"), client.WithRev(rev-1))
-// 	assert.NotNil(t, rev0res)
-// 	assert.Equal(t, "0", string(rev0res.Kvs[0].Value))
+	rev1res, _ := kvClient.Range([]byte("compact"), client.WithRev(rev))
+	assert.NotNil(t, rev1res)
+	assert.Equal(t, "1", string(rev1res.Kvs[0].Value))
 
-// 	rev1res, _ := kvClient.Range([]byte("compact"), client.WithRev(rev))
-// 	assert.NotNil(t, rev1res)
-// 	assert.Equal(t, "1", string(rev1res.Kvs[0].Value))
+	kvClient.Compact(rev)
 
-// 	kvClient.Compact(rev)
+	// after compacting
+	_, err := kvClient.Range([]byte("compact"), client.WithRev(rev-1))
+	assert.Error(t, err)
 
-// 	// after compacting
-// 	_, err := kvClient.Range([]byte("compact"), client.WithRev(rev-1))
-// 	assert.Error(t, err)
-
-// 	getRes, _ := kvClient.Range([]byte("compact"), client.WithRev(rev))
-// 	assert.Equal(t, "1", string(getRes.Kvs[0].Value))
-// }
+	getRes, _ := kvClient.Range([]byte("compact"), client.WithRev(rev))
+	assert.Equal(t, "1", string(getRes.Kvs[0].Value))
+}

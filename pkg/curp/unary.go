@@ -2,6 +2,7 @@ package curp
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -390,7 +391,7 @@ func (u *unary) repeatablePropose(
 		select {
 		case fastResp := <-fastResCh:
 			return &rpc.ProposeResult_{
-				ExeResult: fastResp.ExeResult,
+				Er: fastResp.ExeResult,
 			}, nil
 		case fastErr := <-fastErrCh:
 			if fastErr.ShouldAboutSlowRound() {
@@ -399,8 +400,8 @@ func (u *unary) repeatablePropose(
 			select {
 			case slowResp := <-slowResCh:
 				return &rpc.ProposeResult_{
-					ExeResult:         slowResp.Ok.ExeResult,
-					AfterSyncedResult: slowResp.Ok.AfterSyncedResult,
+					Er:  slowResp.Ok.ExeResult,
+					Asr: slowResp.Ok.AfterSyncedResult,
 				}, nil
 			case slowErr := <-slowErrCh:
 				if fastErr.Priority() > slowErr.Priority() {
@@ -410,8 +411,8 @@ func (u *unary) repeatablePropose(
 			}
 		case slowResp := <-slowResCh:
 			return &rpc.ProposeResult_{
-				ExeResult:         slowResp.Ok.ExeResult,
-				AfterSyncedResult: slowResp.Ok.AfterSyncedResult,
+				Er:  slowResp.Ok.ExeResult,
+				Asr: slowResp.Ok.AfterSyncedResult,
 			}, nil
 		case slowErr := <-slowErrCh:
 			if slowErr.ShouldAbortFastRound() {
@@ -421,7 +422,7 @@ func (u *unary) repeatablePropose(
 			select {
 			case fastResp := <-fastResCh:
 				return &rpc.ProposeResult_{
-					ExeResult: fastResp.ExeResult,
+					Er: fastResp.ExeResult,
 				}, nil
 			case fastErr := <-fastErrCh:
 				if fastErr.Priority() > slowErr.Priority() {
@@ -433,18 +434,28 @@ func (u *unary) repeatablePropose(
 	} else {
 		select {
 		case slowRes := <-slowResCh:
+			if slowRes.Err != nil {
+				return nil, &rpc.CurpError{CurpError: &curppb.CurpError{Err: &curppb.CurpError_Internal{slowRes.Err.String()}}}
+			}
 			return &rpc.ProposeResult_{
-				ExeResult:         slowRes.Ok.ExeResult,
-				AfterSyncedResult: slowRes.Ok.AfterSyncedResult,
+				Er:  slowRes.Ok.ExeResult,
+				Asr: slowRes.Ok.AfterSyncedResult,
 			}, nil
 		case slowErr := <-slowErrCh:
 			return nil, slowErr
 		case fastErr := <-fastErrCh:
-			slowErr := <-slowErrCh
-			if fastErr.Priority() > slowErr.Priority() {
-				return nil, fastErr
+			select {
+			case slowRes := <-slowResCh:
+				return &rpc.ProposeResult_{
+					Er:  slowRes.Ok.ExeResult,
+					Asr: slowRes.Ok.AfterSyncedResult,
+				}, nil
+			case slowErr := <-slowErrCh:
+				if fastErr.Priority() > slowErr.Priority() {
+					return nil, fastErr
+				}
+				return nil, slowErr
 			}
-			return nil, slowErr
 		}
 	}
 }
@@ -463,9 +474,11 @@ func (u *unary) fastRound(proposeId *curppb.ProposeId, cmd *xlinepb.Command) (*r
 			defer cancel()
 			res, err := conn.Propose(ctx, req, timeout)
 			if err != nil {
+				fmt.Printf("propose err: %+v, pid: %+v\n", err, proposeId)
 				errCh <- err
 				return
 			}
+			fmt.Printf("propose res: %+v, pid: %+v\n", res, proposeId)
 			resCh <- res
 		}(conn)
 	}
@@ -548,8 +561,10 @@ func (u *unary) slowRound(proposeId *curppb.ProposeId) (*rpc.WaitSyncedResult, *
 	defer cancel()
 	res, err := conn.WaitSynced(ctx, req, timeout)
 	if err != nil {
+		fmt.Printf("wait synced error: %+v, pid: %+v\n", res, proposeId)
 		return nil, rpc.NewCurpError(err)
 	}
+	fmt.Printf("wait synced res: %+v, pid: %+v\n", res, proposeId)
 
 	waitSyncedResult, waitSyncedErr := rpc.NewWaitSyncedResponse(res).DeserializeResult()
 	if waitSyncedErr != nil {

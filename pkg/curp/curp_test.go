@@ -158,7 +158,7 @@ func TestUnaryProposeFastPathWorks(t *testing.T) {
 	assert.Nil(t, err)
 	res, err := unary.repeatablePropose(&curppb.ProposeId{SeqNum: 7}, &xlineapi.Command{}, true)
 	assert.Nil(t, err)
-	assert.Equal(t, &xlineapi.RangeResponse{Count: 1}, res.ExeResult.GetRangeResponse())
+	assert.Equal(t, &xlineapi.RangeResponse{Count: 1}, res.Er.GetRangeResponse())
 }
 
 func TestUnaryProposeSlowPathWorks(t *testing.T) {
@@ -174,8 +174,8 @@ func TestUnaryProposeSlowPathWorks(t *testing.T) {
 	assert.Nil(t, err)
 	res, err := unary.repeatablePropose(&curppb.ProposeId{SeqNum: 7}, &xlineapi.Command{}, false)
 	assert.Nil(t, err)
-	assert.Equal(t, &xlineapi.RangeResponse{Count: 1}, res.ExeResult.GetRangeResponse())
-	assert.Equal(t, int64(1), res.AfterSyncedResult.Revision)
+	assert.Equal(t, &xlineapi.RangeResponse{Count: 1}, res.Er.GetRangeResponse())
+	assert.Equal(t, int64(1), res.Asr.Revision)
 }
 
 func TestUnaryProposeFastPathFallbackSlowPath(t *testing.T) {
@@ -191,8 +191,8 @@ func TestUnaryProposeFastPathFallbackSlowPath(t *testing.T) {
 	assert.Nil(t, err)
 	res, err := unary.repeatablePropose(&curppb.ProposeId{SeqNum: 8}, &xlineapi.Command{}, true)
 	assert.Nil(t, err)
-	assert.Equal(t, &xlineapi.RangeResponse{Count: 1}, res.ExeResult.GetRangeResponse())
-	assert.Equal(t, int64(1), res.AfterSyncedResult.Revision)
+	assert.Equal(t, &xlineapi.RangeResponse{Count: 1}, res.Er.GetRangeResponse())
+	assert.Equal(t, int64(1), res.Asr.Revision)
 }
 
 func TestUnaryProposeReturnEarlyErr(t *testing.T) {
@@ -217,7 +217,7 @@ func TestRetryProposeReturnNoRetryError(t *testing.T) {
 	unary, err := newUnaryBuilder(allMembers, unaryConfig).setLeaderState(0, 1).build()
 	assert.Nil(t, err)
 	retry := NewRetry(unary, newFixedRetryConfig(1*time.Millisecond, 3))
-	res, err := retry.propose(&xlineapi.Command{}, false)
+	res, err := retry.Propose(&xlineapi.Command{}, false)
 	assert.Nil(t, res)
 	assert.NotNil(t, err.GetShuttingDown())
 }
@@ -234,7 +234,7 @@ func TestRetryProposeReturnRetryError(t *testing.T) {
 	unary, err := newUnaryBuilder(allMembers, unaryConfig).setLeaderState(0, 1).build()
 	assert.Nil(t, err)
 	retry := NewRetry(unary, newFixedRetryConfig(1*time.Millisecond, 3))
-	res, err := retry.propose(&xlineapi.Command{}, false)
+	res, err := retry.Propose(&xlineapi.Command{}, false)
 	assert.Nil(t, res)
 	assert.NotNil(t, err.GetInternal())
 }

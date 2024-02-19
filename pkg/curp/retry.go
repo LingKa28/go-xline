@@ -245,7 +245,7 @@ func (r *retry) retryPropose(
 	}
 }
 
-func (r *retry) propose(cmd *xlinepb.Command, useFastPath bool) (*rpc.ProposeResult_, *rpc.CurpError) {
+func (r *retry) Propose(cmd *xlinepb.Command, useFastPath bool) (*rpc.ProposeResult_, *rpc.CurpError) {
 	pid, err := r.retryGenProposeId(r.inner.genProposeID)
 	if err != nil {
 		return nil, err

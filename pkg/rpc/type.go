@@ -137,7 +137,7 @@ func (r *WaitSyncedResponse) DeserializeResult() (*WaitSyncedResult, *CurpError)
 	// ER.Ok != nil, Asr.Ok != nil  <-  WaitSyncedResponse.Ok
 	// ER.Err != nil, ASR == nil     <-  WaitSyncedResponse.Err
 	// ER.Ok != nil, ASR.Err != nil <- WaitSyncedResponse.Err
-	if r.ExeResult.Result.(*curppb.CmdResult_Ok) != nil && r.AfterSyncResult.Result.(*curppb.CmdResult_Ok) != nil {
+	if r.ExeResult.GetOk() != nil && r.AfterSyncResult.GetOk() != nil {
 		er := xlinepb.CommandResponse{}
 		asr := xlinepb.SyncResponse{}
 		err := proto.Unmarshal(r.ExeResult.Result.(*curppb.CmdResult_Ok).Ok, &er)
@@ -150,7 +150,7 @@ func (r *WaitSyncedResponse) DeserializeResult() (*WaitSyncedResult, *CurpError)
 		}
 		return &WaitSyncedResult{Ok: &WaitSyncedResultOk{ExeResult: &er, AfterSyncedResult: &asr}}, nil
 	}
-	if r.ExeResult.Result.(*curppb.CmdResult_Error) != nil && r.AfterSyncResult == nil {
+	if r.ExeResult.GetError() != nil && r.AfterSyncResult == nil {
 		err := xlinepb.ExecuteError{}
 		e := proto.Unmarshal(r.ExeResult.Result.(*curppb.CmdResult_Error).Error, &err)
 		if e != nil {
@@ -158,7 +158,7 @@ func (r *WaitSyncedResponse) DeserializeResult() (*WaitSyncedResult, *CurpError)
 		}
 		return &WaitSyncedResult{Err: &err}, nil
 	}
-	if r.ExeResult.Result.(*curppb.CmdResult_Ok) != nil && r.AfterSyncResult.Result.(*curppb.CmdResult_Error) != nil {
+	if r.ExeResult.GetOk() != nil && r.AfterSyncResult.GetError() != nil {
 		err := xlinepb.ExecuteError{}
 		e := proto.Unmarshal(r.AfterSyncResult.Result.(*curppb.CmdResult_Error).Error, &err)
 		if e != nil {
@@ -189,8 +189,8 @@ type WaitSyncedResult struct {
 
 // Propose result
 type ProposeResult_ struct {
-	ExeResult         *xlinepb.CommandResponse
-	AfterSyncedResult *xlinepb.SyncResponse
+	Er  *xlinepb.CommandResponse
+	Asr *xlinepb.SyncResponse
 }
 
 // The priority of curp error
@@ -283,4 +283,9 @@ func (e *CurpError) Priority() curpErrorPriority {
 	default:
 		panic(e.Err)
 	}
+}
+
+// Get the string representation of the error
+func (e *CurpError) Error() string {
+	return e.String()
 }
